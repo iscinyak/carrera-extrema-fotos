@@ -4,6 +4,10 @@ const mini = (f) => `fotos/mini/${f.id}.webp`;
 const hd = (f) => `fotos/hd/${f.id}.jpg`;
 const nombreDescarga = (f) => `carrera-extrema-${f.id}.jpg`;
 const normaliza = (v) => (v.match(/\d+/) ? String(parseInt(v.match(/\d+/)[0], 10)) : "");
+// Esta carrera tiene 300 dorsales, del 001 al 300
+const DORSAL_MAX = 300;
+const tresCifras = (d) => String(d).padStart(3, "0");
+const dorsalValido = (d) => Number(d) >= 1 && Number(d) <= DORSAL_MAX;
 
 const estado = { datos: null, lista: [], mostradas: 0, dorsal: "", actual: -1 };
 
@@ -48,8 +52,8 @@ function pintarFiltro() {
   const b = document.createElement("button");
   b.type = "button";
   b.className = "chip chip-dorsal";
-  b.textContent = `Dorsal ${estado.dorsal} ✕`;
-  b.setAttribute("aria-label", `Quitar filtro del dorsal ${estado.dorsal}`);
+  b.textContent = `Dorsal ${tresCifras(estado.dorsal)} ✕`;
+  b.setAttribute("aria-label", `Quitar filtro del dorsal ${tresCifras(estado.dorsal)}`);
   b.addEventListener("click", () => {
     estado.dorsal = "";
     $("#dorsal").value = "";
@@ -63,16 +67,19 @@ function pintarCabecera() {
   const titulo = $("#tituloGaleria");
   const aviso = $("#aviso");
   const zip = $("#descargarTodas");
-  titulo.innerHTML = estado.dorsal ? `Dorsal <span>${estado.dorsal}</span>` : "Todas las fotos";
+  titulo.innerHTML = estado.dorsal ? `Dorsal <span>${tresCifras(estado.dorsal)}</span>` : "Todas las fotos";
   $("#contador").textContent = n === 1 ? "1 foto" : `${n.toLocaleString("es")} fotos`;
   zip.hidden = !(estado.dorsal && n > 0);
 
   if (!estado.datos.fotos.length) {
     aviso.hidden = false;
     aviso.innerHTML = "<strong>¡Las fotos vienen en camino!</strong> Las estamos subiendo después de la carrera. Vuelve en unas horas.";
+  } else if (estado.dorsal && !dorsalValido(estado.dorsal)) {
+    aviso.hidden = false;
+    aviso.innerHTML = `<strong>El dorsal ${estado.dorsal} no existe en esta carrera.</strong> Los dorsales van del 001 al ${tresCifras(DORSAL_MAX)}: revisa el número que llevabas en el pecho.`;
   } else if (estado.dorsal && !n) {
     aviso.hidden = false;
-    aviso.innerHTML = `<strong>Aún no encontramos fotos con el dorsal ${estado.dorsal}.</strong> Seguimos identificando corredores, así que vuelve más tarde. Mientras tanto, <button type="button" class="ver-todas" id="avisoTodas">mira todas las fotos</button>: puede que aparezcas en alguna.`;
+    aviso.innerHTML = `<strong>Aún no encontramos fotos con el dorsal ${tresCifras(estado.dorsal)}.</strong> Seguimos identificando corredores, así que vuelve más tarde. Mientras tanto, <button type="button" class="ver-todas" id="avisoTodas">mira todas las fotos</button>: puede que aparezcas en alguna.`;
     $("#avisoTodas").addEventListener("click", () => {
       estado.dorsal = "";
       $("#dorsal").value = "";
@@ -125,7 +132,7 @@ function abrir(i) {
   };
   completa.src = hd(f);
   visorImg.alt = `Foto ${i + 1} de la Carrera Extrema`;
-  const dorsales = f.d?.length ? ` · Dorsal ${f.d.join(", ")}` : "";
+  const dorsales = f.d?.length ? ` · Dorsal ${f.d.map(tresCifras).join(", ")}` : "";
   $("#visorInfo").innerHTML = `<b>${i + 1}</b> de ${estado.lista.length}${dorsales}`;
   if (!visor.open) visor.showModal();
   actualizarUrl(f.id);
@@ -397,7 +404,7 @@ $("#descargarTodas").addEventListener("click", async (e) => {
     const archivo = await zip.generateAsync({ type: "blob", compression: "STORE" });
     const a = Object.assign(document.createElement("a"), {
       href: URL.createObjectURL(archivo),
-      download: `carrera-extrema-dorsal-${estado.dorsal}.zip`,
+      download: `carrera-extrema-dorsal-${tresCifras(estado.dorsal)}.zip`,
     });
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
@@ -409,7 +416,7 @@ $("#descargarTodas").addEventListener("click", async (e) => {
 
 function actualizarUrl(foto) {
   const p = new URLSearchParams();
-  if (estado.dorsal) p.set("dorsal", estado.dorsal);
+  if (estado.dorsal) p.set("dorsal", tresCifras(estado.dorsal));
   if (foto) p.set("foto", foto);
   const hash = p.toString();
   history.replaceState(null, "", hash ? `#${hash}` : location.pathname + location.search);

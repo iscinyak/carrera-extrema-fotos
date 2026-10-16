@@ -24,6 +24,8 @@ const CSV = path.join(RAIZ, "dorsales.csv");
 const TODO = process.argv.includes("--todo");
 const EXT = new Set([".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff"]);
 const PARALELO = 4;
+const DORSAL_MAX = 300; // esta carrera tiene dorsales del 001 al 300
+const fueraDeRango = [];
 
 const slug = (s) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -98,7 +100,9 @@ async function main() {
 
       const deNombre = (base.match(/_d([\d-]+)/i)?.[1] ?? "").split("-").filter(Boolean).map(normalizaDorsal);
       const deCsv = dorsalesCsv.get(archivo.toLowerCase()) ?? [];
-      const d = [...new Set([...deNombre, ...deCsv])];
+      const todos = [...new Set([...deNombre, ...deCsv])];
+      const d = todos.filter((n) => n >= 1 && n <= DORSAL_MAX);
+      for (const n of todos) if (!d.includes(n)) fueraDeRango.push(`${archivo}: ${n}`);
 
       fotos[i] = { id, c: catId, w: width, h: height, ...(d.length ? { d } : {}) };
       hechas++;
@@ -110,7 +114,11 @@ async function main() {
   const indice = { generado: new Date().toISOString(), categorias, fotos };
   await fs.writeFile(path.join(RAIZ, "site", "fotos.json"), JSON.stringify(indice));
   const conDorsal = fotos.filter((f) => f.d).length;
-  console.log(`\nListo: ${fotos.length} fotos (${nuevas} procesadas ahora), ${categorias.length} categorías, ${conDorsal} con dorsal.`);
+  console.log(`\nListo: ${fotos.length} fotos (${nuevas} procesadas ahora), ${conDorsal} con dorsal.`);
+  if (fueraDeRango.length) {
+    console.log(`\nOjo: se ignoraron ${fueraDeRango.length} dorsales fuera del 001-${DORSAL_MAX} (¿error al escribirlos?):`);
+    for (const linea of fueraDeRango) console.log(`  ${linea}`);
+  }
 }
 
 main().catch((e) => {
