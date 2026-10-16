@@ -1,0 +1,7 @@
+node_modules/
+# Las fotos originales pesan mucho; solo se publican las versiones web de site/fotos
+fotos-originales/
+# Restos de la primera prueba con categorías
+site/fotos/*/salida-*
+site/fotos/*/obstaculos-*
+site/fotos/*/meta-*
