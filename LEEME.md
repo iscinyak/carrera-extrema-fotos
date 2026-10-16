@@ -6,28 +6,46 @@ Página para que los corredores busquen su número de dorsal y descarguen sus fo
 
 ```
 fotos-originales/        ← aquí van todas las fotos de los fotógrafos, sin subcarpetas
-dorsales.csv             ← (opcional) qué dorsales aparecen en cada foto
-procesar-fotos.mjs       ← genera las versiones web y el índice
+dorsales.csv             ← correcciones a mano de los dorsales (opcional)
+procesar-fotos.mjs       ← genera las versiones web, lee los dorsales y arma el índice
+detectar-dorsales.py     ← lector automático de dorsales (OCR, corre en la PC)
 site/                    ← ESTA carpeta es la que se publica
   index.html, styles.css, app.js
-  assets/logo.png        ← pon aquí el logo (PNG transparente, fondo oscuro)
-  assets/portada.jpg     ← imagen de fondo de la portada
+  assets/                ← logo, fondos y piezas de los artes oficiales
   fotos/ y fotos.json    ← se generan solos
 ```
+
+## Lector automático de dorsales
+
+`npm run fotos` lee los números de los dorsales en cada foto con RapidOCR. Corre en la PC, es gratis y no
+necesita internet. Solo acepta números de 3 cifras entre 001 y 300, así descarta lecturas falsas.
+Tarda unos 2–3 segundos por foto la primera vez: 1 000 fotos son unos 45 minutos. Recuerda lo que ya leyó
+(`dorsales-auto.json`), así que con cada tanda nueva solo lee las fotos nuevas.
+
+Se instala una sola vez en cada computadora (requiere Python 3):
+```
+npm run instalar-lector
+```
+
+En las pruebas encontró 21 de 24 dorsales visibles. Se le escapan los muy tapados por lodo o en ángulo.
+
+**Corregir a mano:** anota la foto en `dorsales.csv`. Lo que diga el CSV reemplaza a la lectura automática
+de esa foto, y si dejas los dorsales vacíos se le quitan:
+```
+archivo,dorsales
+IMG_3548.jpg,087
+IMG_3643.jpg,099 098
+IMG_3366.jpg,
+```
+También puedes renombrar el archivo con el dorsal: `IMG_3195_d038-039.jpg`.
 
 ## Día del evento
 
 1. Copia las fotos directamente en `fotos-originales/`.
-2. (Opcional) Llena `dorsales.csv`:
-   ```
-   archivo,dorsales
-   IMG_3195.jpg,038 039
-   IMG_3215.jpg,112
-   ```
-   También puedes renombrar el archivo con el dorsal: `IMG_3195_d038-039.jpg`.
-3. Ejecuta `npm run fotos`. Solo procesa las fotos nuevas, así que puedes repetirlo cada vez que llegue otra tanda.
-4. Ejecuta `npm run ver` y abre http://localhost:4321 para revisar.
-5. Publica la carpeta `site/`.
+2. Ejecuta `npm run fotos`. Solo procesa las fotos nuevas, así que puedes repetirlo con cada tanda.
+3. Ejecuta `npm run ver` y abre http://localhost:4321 para revisar. Si un corredor reporta que no se
+   encuentra, corrige en `dorsales.csv` y vuelve a ejecutar `npm run fotos`.
+4. Publica con `npm run deploy`.
 
 ## Publicar en Cloudflare (gratis)
 

@@ -6,21 +6,28 @@
 // Cada subcarpeta de fotos-originales/ es una categoría ("01 Salida", "02 Lodo"...).
 // El número inicial solo sirve para ordenar y no se muestra.
 //
-// Dorsales: opcionalmente crea dorsales.csv con líneas  archivo,dorsales
+// Dorsales: se leen solos de cada foto con OCR (detectar-dorsales.py, resultado en dorsales-auto.json).
+// También se toman del nombre del archivo con el formato  _d038-039  (ej. IMG_3195_d038-039.jpg).
+// Para corregir una foto, anótala en dorsales.csv (archivo,dorsales). Lo que diga el CSV
+// reemplaza a la lectura automática; con la columna vacía se le quitan los dorsales:
 //   IMG_3195.jpg,038 039 112
-// También se detectan en el nombre del archivo con el formato  _d038-039  (ej. IMG_3195_d038-039.jpg)
+//   IMG_3548.jpg,
 //
 // Uso:  npm run fotos            (solo procesa fotos nuevas)
 //       npm run fotos -- --todo  (vuelve a generar todo)
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import sharp from "sharp";
 
 const RAIZ = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const ENTRADA = path.join(RAIZ, "fotos-originales");
 const SALIDA = path.join(RAIZ, "site", "fotos");
 const CSV = path.join(RAIZ, "dorsales.csv");
+const CACHE_OCR = path.join(RAIZ, "dorsales-auto.json");
+const SIN_OCR = process.argv.includes("--sin-ocr");
 const TODO = process.argv.includes("--todo");
 const EXT = new Set([".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff"]);
 const PARALELO = 4;
@@ -38,7 +45,7 @@ async function leerDorsalesCsv() {
     const texto = await fs.readFile(CSV, "utf8");
     for (const linea of texto.split(/\r?\n/)) {
       const [archivo, resto] = linea.split(/,(.*)/s);
-      if (!archivo || !resto || /^archivo$/i.test(archivo.trim())) continue;
+      if (!archivo?.trim() || resto === undefined || /^archivo$/i.test(archivo.trim())) continue;
       const nums = resto.match(/\d+/g) ?? [];
       mapa.set(archivo.trim().toLowerCase(), nums.map(normalizaDorsal));
     }
@@ -98,26 +105,57 @@ async function main() {
       }
       const { width, height } = await sharp(hd).metadata();
 
-      const deNombre = (base.match(/_d([\d-]+)/i)?.[1] ?? "").split("-").filter(Boolean).map(normalizaDorsal);
-      const deCsv = dorsalesCsv.get(archivo.toLowerCase()) ?? [];
-      const todos = [...new Set([...deNombre, ...deCsv])];
-      const d = todos.filter((n) => n >= 1 && n <= DORSAL_MAX);
-      for (const n of todos) if (!d.includes(n)) fueraDeRango.push(`${archivo}: ${n}`);
-
-      fotos[i] = { id, c: catId, w: width, h: height, ...(d.length ? { d } : {}) };
+      fotos[i] = { id, c: catId, w: width, h: height, archivo, base };
       hechas++;
       if (hechas % 25 === 0 || hechas === trabajos.length) process.stdout.write(`\r  ${hechas}/${trabajos.length} fotos`);
     }
   }
   await Promise.all(Array.from({ length: PARALELO }, trabajador));
 
+  const ocr = SIN_OCR ? {} : leerDorsalesConOcr(fotos.map((f) => f.id));
+  let automaticas = 0, corregidas = 0;
+  for (const f of fotos) {
+    const deNombre = (f.base.match(/_d([\d-]+)/i)?.[1] ?? "").split("-").filter(Boolean).map(normalizaDorsal);
+    const deCsv = dorsalesCsv.get(f.archivo.toLowerCase());
+    const deOcr = ocr[f.id]?.d ?? [];
+    if (deCsv) corregidas++;
+    else if (deOcr.length) automaticas++;
+    const todos = [...new Set([...deNombre, ...(deCsv ?? deOcr)])];
+    const d = todos.filter((n) => n >= 1 && n <= DORSAL_MAX);
+    for (const n of todos) if (!d.includes(n)) fueraDeRango.push(`${f.archivo}: ${n}`);
+    delete f.archivo;
+    delete f.base;
+    if (d.length) f.d = d;
+  }
+
   const indice = { generado: new Date().toISOString(), categorias, fotos };
   await fs.writeFile(path.join(RAIZ, "site", "fotos.json"), JSON.stringify(indice));
   const conDorsal = fotos.filter((f) => f.d).length;
   console.log(`\nListo: ${fotos.length} fotos (${nuevas} procesadas ahora), ${conDorsal} con dorsal.`);
+  console.log(`  Dorsales leídos automáticamente en ${automaticas} fotos; ${corregidas} corregidas a mano en dorsales.csv.`);
   if (fueraDeRango.length) {
     console.log(`\nOjo: se ignoraron ${fueraDeRango.length} dorsales fuera del 001-${DORSAL_MAX} (¿error al escribirlos?):`);
     for (const linea of fueraDeRango) console.log(`  ${linea}`);
+  }
+}
+
+// Lee los dorsales con detectar-dorsales.py (Python con RapidOCR en .venv)
+function leerDorsalesConOcr(ids) {
+  const python = [path.join(RAIZ, ".venv", "Scripts", "python.exe"), path.join(RAIZ, ".venv", "bin", "python")].find(existsSync);
+  if (!python) {
+    console.log("\n  Aviso: no está instalado el lector de dorsales (.venv). Mira LEEME.md. Sigo sin lectura automática.");
+    return {};
+  }
+  console.log("");
+  const r = spawnSync(python, ["-I", path.join(RAIZ, "detectar-dorsales.py"), path.join(SALIDA, "hd"), CACHE_OCR, String(DORSAL_MAX)], {
+    input: JSON.stringify(ids),
+    stdio: ["pipe", "inherit", "inherit"],
+  });
+  if (r.status !== 0) console.log("  Aviso: falló la lectura automática de dorsales; sigo con lo que haya.");
+  try {
+    return JSON.parse(readFileSync(CACHE_OCR, "utf8"));
+  } catch {
+    return {};
   }
 }
 

@@ -12,3 +12,8 @@ site/fotos/*/meta-*
 !.dev.vars.example
 .env*
 !.env.example
+
+# Lector de dorsales: entorno de Python y lecturas guardadas
+.venv/
+dorsales-auto.json
+__pycache__/
