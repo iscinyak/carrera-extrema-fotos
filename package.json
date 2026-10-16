@@ -7,9 +7,13 @@
   "scripts": {
     "fotos": "node procesar-fotos.mjs",
     "ver": "npx --yes serve@14.2.4 site -l 4321",
-    "publicar": "git subtree push --prefix site origin gh-pages"
+    "publicar": "git subtree push --prefix site origin gh-pages",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "sharp": "^0.34.4"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.0"
   }
 }

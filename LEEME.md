@@ -29,18 +29,19 @@ site/                    ← ESTA carpeta es la que se publica
 4. Ejecuta `npm run ver` y abre http://localhost:4321 para revisar.
 5. Publica la carpeta `site/`.
 
-## Publicar (Cloudflare Pages, gratis)
+## Publicar en Cloudflare (gratis)
 
-No cobra por tráfico, así que aguanta que todos los corredores descarguen a la vez.
-Admite hasta 20 000 archivos (unas 10 000 fotos).
+La página se sirve como un Worker con archivos estáticos (la versión nueva de Cloudflare Pages).
+No cobra por tráfico y admite hasta 20 000 archivos (unas 10 000 fotos).
 
 ```
-npx wrangler pages deploy site --project-name carrera-extrema-fotos
+npm run deploy
 ```
 
-La primera vez abre el navegador para iniciar sesión en Cloudflare. Te da una URL `https://carrera-extrema-fotos.pages.dev`
-y desde el panel de Cloudflare puedes conectar un dominio propio, como `fotos.carreraextrema.com`.
-Para actualizar, repite `npm run fotos` y el mismo comando de publicación.
+Publica la carpeta `site/` según `wrangler.jsonc`. La dirección es
+https://carrera-extrema-fotos.carrera-extrema-fotos.workers.dev
+Para actualizar, repite `npm run fotos` y `npm run deploy`. Los restos de la primera prueba no se suben
+porque están listados en `site/.assetsignore`.
 
 ## Vista previa en GitHub Pages (para revisión del cliente)
 

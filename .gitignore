@@ -5,3 +5,10 @@ fotos-originales/
 site/fotos/*/salida-*
 site/fotos/*/obstaculos-*
 site/fotos/*/meta-*
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
