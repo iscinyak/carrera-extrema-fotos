@@ -1,7 +1,9 @@
 const POR_TANDA = 48;
 const $ = (s) => document.querySelector(s);
-const mini = (f) => `fotos/mini/${f.id}.webp`;
-const hd = (f) => `fotos/hd/${f.id}.jpg`;
+// Las fotos se sirven desde Cloudflare (no caben en el límite de 1 GB de GitHub Pages)
+const FOTOS = "https://carrera-extrema-fotos.carrera-extrema-fotos.workers.dev/fotos";
+const mini = (f) => `${FOTOS}/mini/${f.id}.webp`;
+const hd = (f) => `${FOTOS}/hd/${f.id}.jpg`;
 const nombreDescarga = (f) => `carrera-extrema-${f.id}.jpg`;
 const normaliza = (v) => (v.match(/\d+/) ? String(parseInt(v.match(/\d+/)[0], 10)) : "");
 // Esta carrera tiene 300 dorsales, del 001 al 300
@@ -212,6 +214,8 @@ async function abrirFormatos() {
     fmt.foto = f;
     fmt.img = null;
     const img = new Image();
+    // La foto viene de otro dominio: sin esto el lienzo no deja exportar la imagen
+    img.crossOrigin = "anonymous";
     img.src = hd(f);
     await Promise.all([img.decode(), document.fonts.load("64px Anton"), document.fonts.load("700 30px Montserrat"), logo.decode().catch(() => {}), fondo.decode().catch(() => {})]);
     if (fmt.foto !== f) return;

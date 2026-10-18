@@ -17,3 +17,6 @@ site/fotos/*/meta-*
 .venv/
 dorsales-auto.json
 __pycache__/
+
+# Las fotos web se publican en Cloudflare (npm run deploy), no en el repo
+site/fotos/

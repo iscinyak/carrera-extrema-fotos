@@ -7,7 +7,7 @@
   "scripts": {
     "fotos": "node procesar-fotos.mjs",
     "ver": "npx --yes serve@14.2.4 site -l 4321",
-    "publicar": "node -e \"const {execSync:x}=require('child_process');const c=x('git subtree split --prefix site').toString().trim();x('git push origin '+c+':gh-pages --force',{stdio:'inherit'})\"",
+    "publicar": "node publicar-pagina.mjs",
     "deploy": "wrangler deploy",
     "instalar-lector": "python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt"
   },

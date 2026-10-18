@@ -4,27 +4,44 @@ Uso (lo llama procesar-fotos.mjs; también se puede correr solo):
     .venv/Scripts/python detectar-dorsales.py site/fotos/hd dorsales-auto.json 300
 
 Guarda el resultado en dorsales-auto.json para no volver a leer fotos que no cambiaron.
+Reparte el trabajo entre varios procesos para aprovechar todos los núcleos del procesador.
 """
 import json
 import os
 import re
 import sys
 import time
-
-from rapidocr_onnxruntime import RapidOCR
+from multiprocessing import Pool
 
 CONFIANZA_MINIMA = 0.5
+# Cada proceso usa 4 hilos; con 16 núcleos salen 4 procesos en paralelo
+HILOS_POR_PROCESO = 4
+
+_ocr = None
+_maximo = 300
 
 
-def leer_dorsales(ocr, ruta, maximo):
-    resultado, _ = ocr(ruta)
+def iniciar_proceso(maximo):
+    global _ocr, _maximo
+    from rapidocr_onnxruntime import RapidOCR
+
+    _maximo = maximo
+    try:
+        _ocr = RapidOCR(intra_op_num_threads=HILOS_POR_PROCESO)
+    except TypeError:
+        _ocr = RapidOCR()
+
+
+def leer_dorsales(tarea):
+    id_foto, ruta, mtime = tarea
+    resultado, _ = _ocr(ruta)
     encontrados = set()
     for _caja, texto, confianza in resultado or []:
         # Los dorsales siempre tienen 3 cifras; el OCR a veces confunde 0 con O
         t = texto.strip().upper().replace(" ", "").replace("O", "0")
-        if float(confianza) >= CONFIANZA_MINIMA and re.fullmatch(r"\d{3}", t) and 1 <= int(t) <= maximo:
+        if float(confianza) >= CONFIANZA_MINIMA and re.fullmatch(r"\d{3}", t) and 1 <= int(t) <= _maximo:
             encontrados.add(str(int(t)))
-    return sorted(encontrados, key=int)
+    return id_foto, mtime, sorted(encontrados, key=int)
 
 
 def main():
@@ -40,27 +57,29 @@ def main():
         # procesar-fotos.mjs manda por stdin la lista de fotos vigentes
         ids = set(json.load(sys.stdin))
         fotos = [f for f in fotos if os.path.splitext(f)[0] in ids]
+
     pendientes = []
     for archivo in fotos:
         id_foto = os.path.splitext(archivo)[0]
         mtime = int(os.path.getmtime(os.path.join(carpeta, archivo)))
         if cache.get(id_foto, {}).get("m") != mtime:
-            pendientes.append((id_foto, archivo, mtime))
+            pendientes.append((id_foto, os.path.join(carpeta, archivo), mtime))
 
     # Quita del caché las fotos que ya no existen
     vigentes = {os.path.splitext(a)[0] for a in fotos}
     cache = {k: v for k, v in cache.items() if k in vigentes}
 
     if pendientes:
-        print(f"  Leyendo dorsales de {len(pendientes)} fotos nuevas...")
-        ocr = RapidOCR()
+        procesos = max(1, min(len(pendientes), (os.cpu_count() or 4) // HILOS_POR_PROCESO))
+        print(f"  Leyendo dorsales de {len(pendientes)} fotos nuevas con {procesos} procesos...")
         inicio = time.time()
-        for n, (id_foto, archivo, mtime) in enumerate(pendientes, 1):
-            cache[id_foto] = {"m": mtime, "d": leer_dorsales(ocr, os.path.join(carpeta, archivo), maximo)}
-            restante = (time.time() - inicio) / n * (len(pendientes) - n)
-            print(f"\r  {n}/{len(pendientes)} fotos - faltan ~{restante / 60:.0f} min   ", end="", flush=True)
-            if n % 20 == 0:
-                guardar(ruta_cache, cache)
+        with Pool(procesos, initializer=iniciar_proceso, initargs=(maximo,)) as pool:
+            for n, (id_foto, mtime, dorsales) in enumerate(pool.imap_unordered(leer_dorsales, pendientes), 1):
+                cache[id_foto] = {"m": mtime, "d": dorsales}
+                restante = (time.time() - inicio) / n * (len(pendientes) - n)
+                print(f"\r  {n}/{len(pendientes)} fotos - faltan ~{restante / 60:.0f} min   ", end="", flush=True)
+                if n % 20 == 0:
+                    guardar(ruta_cache, cache)
         print()
     guardar(ruta_cache, cache)
 
