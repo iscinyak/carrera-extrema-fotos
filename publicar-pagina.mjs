@@ -19,6 +19,12 @@ fs.cpSync(SITE, tmp, {
   filter: (origen) => !path.relative(SITE, origen).split(path.sep).includes("fotos") || origen.endsWith("fotos.json"),
 });
 
+// Cloudflare guarda copia de app.js y styles.css por horas: una versión nueva en cada
+// publicación obliga a los navegadores y a Cloudflare a usar el código recién subido
+const version = Date.now().toString(36);
+const indice = path.join(tmp, "index.html");
+fs.writeFileSync(indice, fs.readFileSync(indice, "utf8").replace(/(href="styles\.css|src="app\.js)"/g, `$1?v=${version}"`));
+
 const git = (...args) => execFileSync("git", args, { cwd: tmp, stdio: "inherit" });
 git("init", "-q", "-b", "gh-pages");
 git("add", "-A");
