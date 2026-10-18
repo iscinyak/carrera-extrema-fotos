@@ -47,31 +47,27 @@ También puedes renombrar el archivo con el dorsal: `IMG_3195_d038-039.jpg`.
    encuentra, corrige en `dorsales.csv` y vuelve a ejecutar `npm run fotos`.
 4. Publica con `npm run deploy`.
 
-## Publicar en Cloudflare (gratis)
+## Publicar
 
-La página se sirve como un Worker con archivos estáticos (la versión nueva de Cloudflare Pages).
-No cobra por tráfico y admite hasta 20 000 archivos (unas 10 000 fotos).
+La web está repartida en dos lugares porque las fotos no caben en el límite de 1 GB de GitHub Pages:
 
+| Qué | Dónde | Comando |
+|---|---|---|
+| Página (HTML, estilos, buscador, `fotos.json`) | GitHub Pages → https://fotos.pacelabpanama.com | `npm run publicar` |
+| Fotos (`site/fotos/`) | Cloudflare (Worker en la cuenta de Diego), hasta ~10 000 fotos | `npm run deploy` |
+
+Con cada tanda nueva de fotos:
 ```
-npm run deploy
+npm run fotos      # versiones web + lectura de dorsales
+npm run deploy     # sube a Cloudflare solo las fotos nuevas
+npm run publicar   # publica la página con el nuevo fotos.json
 ```
+Siempre en ese orden: primero las fotos y después la página, para que nunca aparezca una foto que todavía no está subida.
 
-Publica la carpeta `site/` según `wrangler.jsonc`. La dirección es
-https://carrera-extrema-fotos.carrera-extrema-fotos.workers.dev
-Para actualizar, repite `npm run fotos` y `npm run deploy`. Los restos de la primera prueba no se suben
-porque están listados en `site/.assetsignore`.
-
-## Vista previa en GitHub Pages (para revisión del cliente)
-
-La carpeta `site/` se publica en la rama `gh-pages`:
-https://iscinyak.github.io/carrera-extrema-fotos/
-
-Para actualizarla después de hacer cambios:
-```
-git add -A && git commit -m "Cambios" && git push && npm run publicar
-```
-GitHub Pages tiene un límite de 1 GB y de 100 GB de tráfico al mes. Sirve para la revisión,
-pero el día del evento conviene usar Cloudflare Pages.
+- El dominio `fotos.pacelabpanama.com` es un CNAME a `iscinyak.github.io` en el Cloudflare de PACELAB, con el proxy activado (nube naranja) para el HTTPS.
+- `npm run publicar` le pone una versión a `app.js` y `styles.css`, porque Cloudflare guarda esos archivos por horas.
+- `site/_headers` da permiso (CORS) para que la página descargue las fotos de Cloudflare para el zip y los formatos.
+- El repositorio no guarda `site/fotos/`: las fotos solo están en tu PC y en Cloudflare.
 
 ## Antes del evento: borrar las fotos de prueba
 
