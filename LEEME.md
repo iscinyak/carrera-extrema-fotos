@@ -45,7 +45,7 @@ También puedes renombrar el archivo con el dorsal: `IMG_3195_d038-039.jpg`.
 2. Ejecuta `npm run fotos`. Solo procesa las fotos nuevas, así que puedes repetirlo con cada tanda.
 3. Ejecuta `npm run ver` y abre http://localhost:4321 para revisar. Si un corredor reporta que no se
    encuentra, corrige en `dorsales.csv` y vuelve a ejecutar `npm run fotos`.
-4. Publica con `npm run deploy`.
+4. Publica con `npm run deploy` y luego `npm run publicar` (ver abajo).
 
 ## Publicar
 
