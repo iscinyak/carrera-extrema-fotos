@@ -1,6 +1,6 @@
 // Procesa las fotos de fotos-originales/ y genera:
 //   site/fotos/mini/<id>.webp   miniatura para la galería (640 px)
-//   site/fotos/hd/<id>.jpg      versión para ver y descargar (2560 px)
+//   site/fotos/hd/<id>.jpg      versión para ver y descargar (2048 px)
 //   site/fotos.json             índice que lee la página
 //
 // Cada subcarpeta de fotos-originales/ es una categoría ("01 Salida", "02 Lodo"...).
@@ -99,7 +99,7 @@ async function main() {
 
       if (TODO || !(await existeMasNuevo(hd, mtimeMs)) || !(await existeMasNuevo(mini, mtimeMs))) {
         const img = sharp(origen, { failOn: "none" }).rotate();
-        await img.clone().resize({ width: 2560, height: 2560, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 88, mozjpeg: true }).withMetadata({ orientation: undefined }).toFile(hd);
+        await img.clone().resize({ width: 2048, height: 2048, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82, mozjpeg: true }).withMetadata({ orientation: undefined }).toFile(hd);
         await img.clone().resize({ width: 640, height: 960, fit: "inside", withoutEnlargement: true }).webp({ quality: 72 }).toFile(mini);
         nuevas++;
       }

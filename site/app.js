@@ -17,7 +17,8 @@ const visorImg = $("#visorImg");
 
 async function iniciar() {
   try {
-    estado.datos = await fetch("fotos.json", { cache: "no-cache" }).then((r) => r.json());
+    // La consulta única evita que Cloudflare entregue un listado viejo después de publicar
+    estado.datos = await fetch(`fotos.json?t=${Date.now()}`, { cache: "no-store" }).then((r) => r.json());
   } catch {
     estado.datos = { categorias: [], fotos: [] };
   }
