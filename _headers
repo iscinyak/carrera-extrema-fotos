@@ -1,0 +1,5 @@
+# Cabeceras de Cloudflare para las fotos: la página (en GitHub Pages) las descarga
+# desde otro dominio para el zip y los formatos para redes, así que necesitan CORS.
+/fotos/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=86400
