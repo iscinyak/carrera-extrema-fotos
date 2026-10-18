@@ -39,7 +39,8 @@ function aplicar(desplazar = true) {
   const { fotos } = estado.datos;
   estado.lista = estado.dorsal ? fotos.filter((f) => f.d?.includes(estado.dorsal)) : fotos;
   estado.mostradas = 0;
-  rejilla.replaceChildren();
+  prepararColumnas();
+  columnasActuales = columnas.length;
   pintarFiltro();
   pintarCabecera();
   pintarTanda();
@@ -93,15 +94,39 @@ function pintarCabecera() {
   }
 }
 
+/* Columnas fijas: cada foto se agrega a la columna más corta y ya no se mueve.
+   (Con columnas de CSS el navegador redistribuía todo al cargar más fotos y parecía que se repetían.) */
+let columnas = [];
+let alturas = [];
+
+function cuantasColumnas() {
+  const ancho = rejilla.clientWidth || innerWidth;
+  return innerWidth <= 640 ? 2 : Math.min(5, Math.max(2, Math.floor((ancho + 12) / 272)));
+}
+
+function prepararColumnas() {
+  const n = cuantasColumnas();
+  columnas = Array.from({ length: n }, () => Object.assign(document.createElement("div"), { className: "columna" }));
+  alturas = new Array(n).fill(0);
+  rejilla.replaceChildren(...columnas);
+}
+
+function colocar(boton, f) {
+  const i = alturas.indexOf(Math.min(...alturas));
+  columnas[i].append(boton);
+  alturas[i] += f.h / f.w;
+}
+
 function pintarTanda() {
+  if (!columnas.length) prepararColumnas();
   const desde = estado.mostradas;
   const hasta = Math.min(desde + POR_TANDA, estado.lista.length);
-  const frag = document.createDocumentFragment();
   for (let i = desde; i < hasta; i++) {
     const f = estado.lista[i];
     const b = document.createElement("button");
     b.type = "button";
     b.className = "foto";
+    b.dataset.i = i;
     b.setAttribute("aria-label", `Ver foto ${i + 1}`);
     const img = new Image(f.w, f.h);
     img.loading = "lazy";
@@ -111,11 +136,21 @@ function pintarTanda() {
     img.src = mini(f);
     b.append(img);
     b.addEventListener("click", () => abrir(i));
-    frag.append(b);
+    colocar(b, f);
   }
-  rejilla.append(frag);
   estado.mostradas = hasta;
+  actualizarAvance();
 }
+
+// Si cambia el ancho de la pantalla, se reacomodan las fotos ya mostradas en el mismo orden
+let columnasActuales = 0;
+addEventListener("resize", () => {
+  if (!columnas.length || cuantasColumnas() === columnasActuales) return;
+  const botones = [...rejilla.querySelectorAll(".foto")].sort((a, b) => a.dataset.i - b.dataset.i);
+  prepararColumnas();
+  columnasActuales = columnas.length;
+  for (const b of botones) colocar(b, estado.lista[b.dataset.i]);
+});
 
 new IntersectionObserver(
   (entradas) => {
@@ -123,6 +158,30 @@ new IntersectionObserver(
   },
   { rootMargin: "1200px" }
 ).observe($("#centinela"));
+
+/* ---------- Contador flotante: cuántas fotos llevas vistas ---------- */
+const avance = $("#avance");
+function actualizarAvance() {
+  const total = estado.lista.length;
+  // La última foto que ya pasó por la pantalla (en orden), no la última que se cargó
+  // Búsqueda binaria por columna para no medir miles de fotos en cada scroll
+  let vistas = 0;
+  for (const col of columnas) {
+    const hijos = col.children;
+    let lo = 0, hi = hijos.length - 1, ultimo = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (hijos[mid].getBoundingClientRect().top < innerHeight) (ultimo = mid), (lo = mid + 1);
+      else hi = mid - 1;
+    }
+    if (ultimo >= 0) vistas = Math.max(vistas, +hijos[ultimo].dataset.i + 1);
+  }
+  $("#avanceTexto").textContent = `Fotos ${vistas.toLocaleString("es")} de ${total.toLocaleString("es")}`;
+  const galeriaArriba = $("#galeria").getBoundingClientRect().top;
+  avance.hidden = total < 12 || galeriaArriba > innerHeight * 0.5 || visor.open;
+}
+addEventListener("scroll", () => requestAnimationFrame(actualizarAvance), { passive: true });
+$("#avanceArriba").addEventListener("click", () => $("#galeria").scrollIntoView({ behavior: "smooth" }));
 
 /* ---------- Visor ---------- */
 function abrir(i) {
