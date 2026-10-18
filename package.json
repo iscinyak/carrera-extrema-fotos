@@ -9,7 +9,8 @@
     "ver": "npx --yes serve@14.2.4 site -l 4321",
     "publicar": "node publicar-pagina.mjs",
     "deploy": "wrangler deploy",
-    "instalar-lector": "python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt"
+    "instalar-lector": "python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt",
+    "panel": "node panel-progreso.mjs"
   },
   "dependencies": {
     "sharp": "^0.34.4"
