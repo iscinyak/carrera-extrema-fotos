@@ -326,3 +326,12 @@ button { font: inherit; cursor: pointer; }
   width: 34px; height: 34px; border: 0; border-radius: 50%; background: var(--amarillo); color: var(--negro);
   font-size: 18px; font-weight: 900; line-height: 1;
 }
+
+/* Firma de quien hizo la galería, al final del pie */
+.pie-firma {
+  flex-basis: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin: 28px 0 0; padding-top: 22px; border-top: 1px solid rgb(255 255 255 / .25);
+  font-size: 13px; font-weight: 500; letter-spacing: .04em; opacity: .9;
+}
+.pie-firma img { height: 30px; width: auto; }
+.pie-firma b { font-weight: 800; letter-spacing: .06em; }

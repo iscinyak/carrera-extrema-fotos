@@ -54,7 +54,7 @@ La web está repartida en dos lugares porque las fotos no caben en el límite de
 | Qué | Dónde | Comando |
 |---|---|---|
 | Página (HTML, estilos, buscador, `fotos.json`) | GitHub Pages → https://fotos.pacelabpanama.com | `npm run publicar` |
-| Fotos (`site/fotos/`) | Cloudflare (Worker en la cuenta de Diego), hasta ~10 000 fotos | `npm run deploy` |
+| Fotos (`site/fotos/`) | Cloudflare (Worker en la cuenta de is.cinyak), hasta ~10 000 fotos | `npm run deploy` |
 
 Con cada tanda nueva de fotos:
 ```
