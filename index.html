@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Fotos · Carrera Extrema Sportline 2026</title>
+  <meta name="description" content="Busca tu número de dorsal y descarga gratis tus fotos de la Carrera Extrema Sportline · Cerro San Cristóbal, David, Chiriquí.">
+  <meta name="theme-color" content="#ef6604">
+  <meta property="og:title" content="¿Lo viviste? Descarga tus fotos · Carrera Extrema">
+  <meta property="og:description" content="Busca tu dorsal y descarga tus fotos de la Carrera Extrema Sportline.">
+  <meta property="og:image" content="assets/portada.jpg">
+  <link rel="icon" href="assets/icono.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=mvrk5f0s">
+</head>
+<body>
+  <header class="barra">
+    <a class="marca" href="#" aria-label="Carrera Extrema Sportline"><img src="assets/logo.png" alt="Carrera Extrema Sportline"></a>
+    <a class="barra-link" href="#galeria">Ver fotos</a>
+  </header>
+
+  <!-- Franja de agradecimiento en bucle. El texto va dos veces para que el bucle no tenga cortes. -->
+  <div class="franja" role="marquee" aria-label="¡Gracias por ser parte de la Carrera Extrema 2026! Nos vemos en la próxima edición.">
+    <div class="franja-pista" aria-hidden="true">
+      <span>¡Gracias por ser parte de la Carrera Extrema 2026!</span><i class="franja-sep"></i>
+      <span>Nos vemos en el lodo en la próxima edición</span><i class="franja-sep"></i>
+      <span>Etiqueta a @pacelab.club</span><i class="franja-sep"></i>
+      <span>#CarreraExtrema</span><i class="franja-sep"></i>
+      <span>Gracias a Sportline y a todos los patrocinadores</span><i class="franja-sep"></i>
+      <span>¡Gracias por ser parte de la Carrera Extrema 2026!</span><i class="franja-sep"></i>
+      <span>Nos vemos en el lodo en la próxima edición</span><i class="franja-sep"></i>
+      <span>Etiqueta a @pacelab.club</span><i class="franja-sep"></i>
+      <span>#CarreraExtrema</span><i class="franja-sep"></i>
+      <span>Gracias a Sportline y a todos los patrocinadores</span><i class="franja-sep"></i>
+    </div>
+  </div>
+
+  <section class="portada">
+    <div class="portada-foto" aria-hidden="true"></div>
+    <div class="fecha-tab" aria-label="Domingo 18 de octubre"><small>Domingo</small><b>18</b><b>Oct.</b></div>
+    <div class="portada-contenido">
+      <p class="organiza">Organiza: <img src="assets/pacelab-blanco.png" alt="PACELAB Club"></p>
+      <img class="logo-grande" src="assets/logo.png" alt="Carrera Extrema Sportline">
+      <div class="etiquetas" aria-hidden="true"><span class="pincel">+ Fotos oficiales</span><span class="pincel">+ Descarga gratis</span></div>
+      <h1 class="titular">¿Lo viviste? <span>Descárgalo</span></h1>
+      <p class="lugar"><span class="pincel pincel-dorado">Cerro San Cristóbal</span> <span class="ciudad">David · Chiriquí</span></p>
+
+      <form class="buscador" id="buscador" role="search">
+        <label class="buscador-campo">
+          <span class="buscador-etiqueta">Tu número de dorsal</span>
+          <input id="dorsal" name="dorsal" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="000" maxlength="3">
+        </label>
+        <button type="submit">Buscar</button>
+      </form>
+      <button class="ver-todas" type="button" id="verTodas">o mira todas las fotos ↓</button>
+    </div>
+  </section>
+
+  <main id="galeria" class="galeria">
+    <div class="galeria-cabecera">
+      <div>
+        <h2 id="tituloGaleria" class="titulo-seccion">Todas las fotos</h2>
+        <p id="contador" class="contador"></p>
+      </div>
+      <button id="descargarTodas" class="boton boton-secundario" type="button" hidden>Descargar todas (.zip)</button>
+    </div>
+
+    <nav class="categorias" id="categorias" aria-label="Filtro"></nav>
+
+    <div id="aviso" class="aviso" hidden></div>
+    <div id="rejilla" class="rejilla"></div>
+    <div id="centinela" class="centinela" aria-hidden="true"></div>
+    <div id="avance" class="avance" hidden>
+      <span id="avanceTexto" aria-live="off"></span>
+      <button id="avanceArriba" type="button" aria-label="Volver al inicio de la galería">↑</button>
+    </div>
+  </main>
+
+  <footer class="pie">
+    <img class="pie-medalla" src="assets/medalla.webp" alt="Medalla finisher de la Carrera Extrema" loading="lazy" width="300" height="420">
+    <div class="pie-texto">
+      <p class="pie-lema">¡Eres finisher!</p>
+      <p>Comparte tus fotos y etiqueta a <a href="https://www.instagram.com/pacelab.club/" target="_blank" rel="noopener">@pacelab.club</a> · #CarreraExtrema</p>
+      <p class="organiza">Organiza: <img src="assets/pacelab-blanco.png" alt="PACELAB Club"></p>
+      <p class="pie-chico">Fotos de uso personal. Para uso comercial, contacta a la organización.</p>
+    </div>
+    <p class="pie-firma"><img src="assets/cinyak.svg" alt="" width="28" height="31">Galería por <b>is.cinyak</b></p>
+  </footer>
+
+  <dialog id="visor" class="visor" aria-label="Foto ampliada">
+    <div class="visor-barra">
+      <span id="visorInfo" class="visor-info"></span>
+      <div class="visor-acciones">
+        <button id="visorDescargar" class="boton" type="button">Descargar</button>
+        <button id="visorCerrar" class="visor-cerrar" type="button" aria-label="Cerrar">✕</button>
+      </div>
+    </div>
+    <div class="visor-escena">
+      <button id="visorAnterior" class="visor-flecha izq" type="button" aria-label="Foto anterior">‹</button>
+      <img id="visorImg" alt="">
+      <button id="visorSiguiente" class="visor-flecha der" type="button" aria-label="Foto siguiente">›</button>
+    </div>
+
+    <div id="formatos" class="formatos" hidden>
+      <div class="formatos-tarjeta" role="group" aria-labelledby="formatosTitulo">
+        <div class="formatos-cabecera">
+          <h3 id="formatosTitulo">Elige el formato</h3>
+          <button id="formatosCerrar" class="visor-cerrar" type="button" aria-label="Volver a la foto">✕</button>
+        </div>
+        <div class="formatos-opciones">
+          <button type="button" data-formato="historia"><span class="forma" style="aspect-ratio:9/16"></span>Historia<small>1080×1920</small></button>
+          <button type="button" data-formato="post"><span class="forma" style="aspect-ratio:4/5"></span>Post<small>1080×1350</small></button>
+          <button type="button" data-formato="cuadrado"><span class="forma" style="aspect-ratio:1"></span>Cuadrado<small>1080×1080</small></button>
+          <button type="button" data-formato="original"><span class="forma" style="aspect-ratio:3/2"></span>Original<small>Alta calidad</small></button>
+        </div>
+        <div class="formatos-vista">
+          <canvas id="formatosLienzo" aria-label="Vista previa del formato"></canvas>
+          <p id="formatosPista" class="formatos-pista" hidden>Arrastra la foto para encuadrarla</p>
+        </div>
+        <div id="formatosAjuste" class="formatos-ajuste">
+          <button type="button" data-modo="llenar">Recortar</button>
+          <button type="button" data-modo="completa">Foto completa</button>
+        </div>
+        <div class="formatos-acciones">
+          <button id="formatosCompartir" class="boton boton-secundario" type="button" hidden>Compartir</button>
+          <button id="formatosDescargar" class="boton" type="button">Descargar</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+  <script src="app.js?v=mvrk5f0s" defer></script>
+</body>
+</html>
